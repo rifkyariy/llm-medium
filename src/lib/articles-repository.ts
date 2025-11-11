@@ -18,6 +18,7 @@ type FetchOptions = {
 type ArticleRow = {
   id: string;
   title: string;
+  author: string;
   subtitle: string | null;
   excerpt: string;
   sections: unknown;
@@ -30,6 +31,7 @@ function mapRowToArticle(row: ArticleRow): Article {
   return {
     id: row.id,
     title: row.title,
+    author: row.author,
     subtitle: row.subtitle ?? undefined,
     excerpt: row.excerpt,
     sections: sanitizeSections(row.sections),
@@ -110,6 +112,7 @@ export async function persistArticle(article: Article): Promise<Article> {
   const payload = {
     id: article.id,
     title: article.title,
+    author: article.author,
     subtitle: article.subtitle ?? null,
     excerpt: article.excerpt,
     sections: article.sections,

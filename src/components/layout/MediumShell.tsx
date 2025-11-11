@@ -42,7 +42,7 @@ export function MediumShell({
   return (
     <div className="min-h-screen bg-[#f4f4f2] text-zinc-900">
       <MediumHeader onCompose={onCompose} search={search} />
-      <main className="mx-auto flex max-w-[1400px] gap-10 px-6 pb-16 pt-6">
+      <main className="mx-auto flex max-w-[1500px] gap-10 px-6 pb-16 pt-6">
         <aside className="hidden w-52 flex-shrink-0 md:block">
           <nav className="space-y-4">
             <div className="text-sm font-medium text-zinc-500">Home</div>
@@ -85,7 +85,7 @@ type MediumHeaderProps = {
 function MediumHeader({ onCompose, search }: MediumHeaderProps) {
   return (
     <header className="border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 px-6 py-4">
+      <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-6 px-6 py-4">
         <Link href="/" className="text-2xl font-semibold tracking-tight">
           <Image src="/logo.svg" alt="Medium Logo" width={100} height={40} />
         </Link>

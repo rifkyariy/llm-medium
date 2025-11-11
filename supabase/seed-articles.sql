@@ -6,6 +6,7 @@ create extension if not exists "pgcrypto";
 create table if not exists public.articles (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  author text not null default 'Medium Team',
   subtitle text,
   excerpt text not null,
   sections jsonb not null default '[]'::jsonb,
@@ -14,10 +15,14 @@ create table if not exists public.articles (
   image_url text
 );
 
+alter table if exists public.articles
+  add column if not exists author text not null default 'Medium Team';
+
 with seed as (
   select
     (item->>'id')::uuid as id,
     item->>'title' as title,
+  coalesce(item->>'author', 'Medium Team') as author,
     item->>'subtitle' as subtitle,
     item->>'excerpt' as excerpt,
     item->'sections' as sections,
@@ -309,10 +314,11 @@ with seed as (
     ]'::jsonb
   ) as item
 )
-insert into public.articles (id, title, subtitle, excerpt, sections, created_at, reading_time_minutes, image_url)
+insert into public.articles (id, title, author, subtitle, excerpt, sections, created_at, reading_time_minutes, image_url)
 select
   seed.id,
   seed.title,
+  seed.author,
   seed.subtitle,
   seed.excerpt,
   seed.sections,
@@ -322,6 +328,7 @@ select
 from seed
 on conflict (id) do update set
   title = excluded.title,
+  author = excluded.author,
   subtitle = excluded.subtitle,
   excerpt = excluded.excerpt,
   sections = excluded.sections,

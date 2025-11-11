@@ -14,6 +14,7 @@ export type ArticleComment = {
 export type Article = {
   id: string;
   title: string;
+  author: string;
   subtitle?: string;
   excerpt: string;
   sections: ArticleSection[];

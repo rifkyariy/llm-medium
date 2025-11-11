@@ -13,7 +13,9 @@ const mlImages = [
   'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80',
 ];
 
-const baseArticles: Array<Omit<Article, 'id' | 'createdAt'>> = [
+const DEFAULT_AUTHOR = 'Gemini Editorial Team';
+
+const baseArticlesSource: Array<Omit<Article, 'id' | 'createdAt' | 'author'>> = [
   {
     title: 'Instrumenting Next.js Apps with Gemini-Assisted Docs',
     subtitle: 'A playbook for turning observability code into developer-focused content.',
@@ -435,6 +437,11 @@ const baseArticles: Array<Omit<Article, 'id' | 'createdAt'>> = [
     readingTimeMinutes: 5,
   },
 ];
+
+const baseArticles: Array<Omit<Article, 'id' | 'createdAt'>> = baseArticlesSource.map((article) => ({
+  ...article,
+  author: DEFAULT_AUTHOR,
+}));
 
 export const seedArticles: Article[] = baseArticles.map((article, index) => ({
   ...article,

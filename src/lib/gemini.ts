@@ -11,6 +11,7 @@ export type ArticleSection = {
 
 export type GeneratedArticle = {
   title: string;
+  author: string;
   subtitle?: string;
   excerpt: string;
   sections: ArticleSection[];
@@ -44,7 +45,7 @@ function buildPrompt({ code, guidance }: ArticleRequest) {
     ? `\nAdditional direction from the developer: ${guidance.trim()}`
     : "";
 
-  return `You are a senior developer writing for Medium. Turn the following code into a narrative article that explains what the code does, why it matters, and how to adapt it. Focus on clarity and actionable insights.\n\nReturn a JSON object that fits this TypeScript schema:\n\ninterface Article {\n  title: string; // engaging, 8-12 words\n  subtitle?: string; // optional supporting line, <= 120 characters\n  excerpt: string; // 2-3 sentence summary\n  sections: { heading: string; body: string; }[]; // each section < 350 words\n  readingTimeMinutes?: number; // estimated reading time as an integer\n}\n\nEvery section body should be written as Markdown paragraphs and lists when appropriate.\n\nHere is the code to analyze:\n\n\n\n${code}\n\n${optionalGuidance}\n\nRespond ONLY with the JSON object. Do not wrap it in markdown or add commentary.`;
+  return `You are a senior developer writing for Medium. Turn the following code into a narrative article that explains what the code does, why it matters, and how to adapt it. Focus on clarity and actionable insights.\n\nReturn a JSON object that fits this TypeScript schema:\n\ninterface Article {\n  title: string; // engaging, 8-12 words\n  author: string; // byline with first and last name, 2-4 words total\n  subtitle?: string; // optional supporting line, <= 120 characters\n  excerpt: string; // 2-3 sentence summary\n  sections: { heading: string; body: string; }[]; // each section < 350 words and can include Markdown lists\n  readingTimeMinutes?: number; // estimated reading time as an integer\n}\n\nEvery section body should be written as Markdown paragraphs and lists when appropriate.\n\nHere is the code to analyze:\n\n\n\n${code}\n\n${optionalGuidance}\n\nRespond ONLY with the JSON object. Do not wrap it in markdown or add commentary.`;
 }
 
 export async function generateArticle({
@@ -114,6 +115,7 @@ export async function generateArticle({
 
     return {
       title: parsed.title?.trim() || "Untitled Article",
+      author: parsed.author?.trim() || "Gemini Assistant",
       subtitle: parsed.subtitle?.trim() || parsed.dek?.trim(),
       excerpt:
         parsed.excerpt?.trim() ||

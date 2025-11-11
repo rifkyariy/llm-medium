@@ -57,7 +57,7 @@ async function run() {
   const client = new GoogleGenerativeAI(apiKey);
   const model = client.getGenerativeModel({ model: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash' });
 
-  const prompt = `Create a Medium-ready article from this code. Return JSON with title, subtitle, excerpt, sections (heading, body), and readingTimeMinutes.\n\nCode:\n${code}\n\nGuidance:${guidance}`;
+  const prompt = `Create a Medium-ready article from this code. Return JSON with title, author, subtitle, excerpt, sections (heading, body), and readingTimeMinutes.\n\nCode:\n${code}\n\nGuidance:${guidance}`;
 
   const response = await model.generateContent({
     contents: [

@@ -85,35 +85,36 @@ export async function POST(request: NextRequest) {
 	console.log("🤖 Calling Gemini API...");
 
 	try {
-			const generated = await generateArticle({
+		const generated = await generateArticle({
 			code: codeValue,
 			guidance: guidanceValue || undefined,
 			apiKey: apiKeyValue || undefined,
 			model: modelValue || undefined,
 		});
 
-				const enrichedArticle: Article = {
-					id:
-						typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-							? crypto.randomUUID()
-							: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-				title: generated.title,
-				subtitle: generated.subtitle,
-				excerpt: generated.excerpt,
-				sections: generated.sections,
-				createdAt: new Date().toISOString(),
-				readingTimeMinutes: generated.readingTimeMinutes,
-				imageUrl: undefined,
-				comments: [],
-			};
+		const enrichedArticle: Article = {
+			id:
+				typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+					? crypto.randomUUID()
+					: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+			author: generated.author?.trim() || 'Gemini Assistant',
+			title: generated.title,
+			subtitle: generated.subtitle,
+			excerpt: generated.excerpt,
+			sections: generated.sections,
+			createdAt: new Date().toISOString(),
+			readingTimeMinutes: generated.readingTimeMinutes,
+			imageUrl: undefined,
+			comments: [],
+		};
 
-			const persistedArticle = await persistArticle(enrichedArticle);
+		const persistedArticle = await persistArticle(enrichedArticle);
 
 		const elapsed = Date.now() - startTime;
 		console.log(`✅ Gemini responded in ${elapsed}ms`);
-			console.log("📤 Sending response with article:", persistedArticle.title);
+		console.log("📤 Sending response with article:", persistedArticle.title);
 
-			return NextResponse.json(persistedArticle);
+		return NextResponse.json(persistedArticle);
 	} catch (error) {
 		if (error instanceof GeminiUnavailableError) {
 			console.error("🚧 Gemini temporarily unavailable", error);
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
 		}
 
 			if (error instanceof Error) {
-				console.error("💥 Article generation failed", error);
+				console.error("💥 Article failed", error);
 
 				return NextResponse.json(
 					{ error: error.message },
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
 				);
 		}
 
-		console.error("💥 Article generation failed (unknown error)", error);
+		console.error("💥 Article failed (unknown error)", error);
 		return NextResponse.json(
 			{ error: "Unexpected error while generating the article." },
 			{ status: 500 },
