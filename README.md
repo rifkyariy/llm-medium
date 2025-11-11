@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Gemini-Powered Medium UI
 
-## Getting Started
+A Next.js + Tailwind experience that mirrors Medium’s reading flow, drives article generation through the Gemini API, and persists every story in Supabase.
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18 or newer
+- Supabase project (URL + anon key; service role key recommended for inserts)
+- Gemini API key from [Google AI Studio](https://aistudio.google.com/)
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy `.env` to `.env.local` (or export the variables in your hosting provider) and populate:
+
+```properties
+GEMINI_API_KEY=your-gemini-key
+GEMINI_MODEL=gemini-2.5-pro            # optional override
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=public-anon-key
+SUPABASE_SERVICE_ROLE_KEY=service-role # optional, required if RLS blocks anon inserts
+RUNNING_PORT=3099
+```
+
+### 3. Prepare Supabase data
+
+Run the SQL script at `supabase/seed-articles.sql` inside the Supabase SQL editor (or via the Supabase CLI). This script:
+
+- Creates `public.articles` (uuid primary key, text metadata, JSONB sections, timestamps)
+- Seeds 20 Medium-style drafts identical to the local `seed-articles` fallback
+
+Re-running the script is safe thanks to `ON CONFLICT` upserts.
+
+### 4. Start the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3099` and explore:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Search box triggers “quick generate” on Enter or suggestion click—no modal required
+- Gemini requests persist straight into Supabase and appear immediately in the feed
+- Queue widget (bottom-right) shows pending, generating, posted, and error states
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Production & diagnostics
 
-## Learn More
+```bash
+npm run lint   # ESLint
+npm run build  # Production build
+npm run start  # Serve the built app (uses port 3099 by default)
+```
 
-To learn more about Next.js, take a look at the following resources:
+The CLI shortcut remains available when you prefer the terminal:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run gemini:article -- --file ./path/to/snippet.ts --guide "focus on testing strategy"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+It prints the Gemini JSON payload; you can manually insert it via Supabase or pipe it somewhere else.
 
-## Deploy on Vercel
+### Supabase schema reference
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| `id` | `uuid` | Primary key, defaults to `gen_random_uuid()` |
+| `title`, `subtitle`, `excerpt` | `text` | Core article metadata |
+| `sections` | `jsonb` | Array of `{ heading, body }` blocks |
+| `reading_time_minutes` | `integer` | Optional runtime estimate |
+| `image_url` | `text` | Hero image per story |
+| `created_at` | `timestamptz` | Defaults to `now()`; used for pagination |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you rely on anon keys exclusively, ensure your RLS policies allow `insert` and `select` on `public.articles`.
+
+### How the flow works
+
+- `src/lib/articles-repository.ts` creates a Supabase client with the provided keys; the UI falls back to static seeds only when env vars are missing
+- `/api/generate` calls Gemini, then persists the normalized article via Supabase before responding
+- Search suggestions call the generator directly, enqueueing progress into the queue widget while the card is posting
+
+That combination keeps the Medium-style feed, the Gemini generator, and Supabase in sync without extra clicks.
