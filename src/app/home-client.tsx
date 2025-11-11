@@ -578,7 +578,7 @@ export default function HomeClient({ initialArticles, initialPagination }: HomeC
                     }`}
                   >
                     {item.status === 'pending' && 'Queued'}
-                    {item.status === 'generating' && 'Generating...'}
+                    {item.status === 'generating' && 'Querying...'}
                     {item.status === 'complete' && 'Posted'}
                     {item.status === 'error' && 'Failed'}
                   </p>
@@ -616,8 +616,8 @@ function buildSearchSuggestions(query: string): SearchSuggestion[] {
   return [
     {
       id: `generate-${slug}`,
-      title: `Generate article for "${topic}"`,
-      description: 'Use Gemini to turn this idea into a shareable Medium draft.',
+      title: `Searching article for "${topic}"`,
+      description: 'Use database to turn this idea into a shareable Medium draft.',
       action: 'generate',
       payload: {
         code: buildSearchCode(topic),
